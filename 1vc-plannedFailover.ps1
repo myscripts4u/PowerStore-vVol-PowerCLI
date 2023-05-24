@@ -18,6 +18,7 @@ Connect-VIServer -User "$vcUser" -Password "$vcPass" -Server $siteA -WarningActi
 
 $virtualmachine = "vvol-vm1"
 $vm = get-vm $virtualmachine
+$cluster = ($vm | get-cluster)
 
 write-host -foregroundcolor Yellow "======= Step 2 ======="
 write-host "$siteA is source for $virtualmachine"
@@ -38,6 +39,7 @@ write-host "Replication Group : " $rg
 write-host "        - Source:"$rgpair.source
 write-host "        - Target:"$rgpair.target 
 write-host "Storage Policy    : " $stoPol " -> " $newStoPol
+write-host "Cluster           : " $cluster.Name
 write-host "Protected VMs     :"
 
 $rgVMs | ForEach-Object {
@@ -87,7 +89,7 @@ $rgvms | ForEach-Object {
     $_ | Remove-VM -ErrorAction SilentlyContinue -Confirm:$false
 }
 write-host -foregroundcolor Blue "----------------------"
-$vmhost = get-vmhost -Server $siteA -state Connected| select -First 1
+$vmhost = get-vmhost -Server $siteA -state Connected -location $cluster | select -First 1
 $newDstVMs= @()
 $vmxfile | ForEach-Object {
     write-host "Register VMX $_ on SRC ( $siteA )"
